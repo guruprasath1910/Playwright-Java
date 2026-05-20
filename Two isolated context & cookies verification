@@ -1,0 +1,43 @@
+package training;
+
+import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.Cookie;
+
+import java.util.Collections;
+
+public class MyClass {
+    public static void main(String[] args) {
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false).setSlowMo(500));
+            System.out.println("Browser launched Successfully");
+            BrowserContext contextA = browser.newContext();
+            Page pageA = contextA.newPage();
+            pageA.navigate("https://testautomationpractice.blogspot.com");
+            contextA.addCookies(Collections.singletonList(new Cookie("session_key_user_A", "secret_value_123").setDomain(".example.com").setPath("/")));
+            System.out.println("Context A: Navigated and injected a custom cookie.");
+            System.out.println("Context A Total Cookies: " + contextA.cookies().size());
+            System.out.println("Creating isolated Context B");
+            BrowserContext contextB = browser.newContext();
+            Page pageB = contextB.newPage();
+            pageB.navigate("https://testautomationpractice.blogspot.com");
+            System.out.println("Context B: Navigated to the same site.");
+            System.out.println("Context B Total Cookies: " + contextB.cookies().size());
+            System.out.println("Verification Audit");
+            boolean isCookieShared = contextB.cookies().stream().anyMatch(cookie -> cookie.equals("session_key_user_A"));
+            if (!isCookieShared && contextB.cookies().isEmpty()) {
+                System.out.println("Success: ContextB is completely empty! Cookies are not shared.");
+                System.out.println("This proves context A and context B are 100% isolated.");
+            } else {
+                System.out.println("Failure: Isolation breached");
+            }
+            pageA.close();
+            contextA.close();
+            pageB.close();
+            contextB.close();
+
+            System.out.println("All resources safely closed");
+
+
+        }
+    }
+}
