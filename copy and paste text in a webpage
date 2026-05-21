@@ -1,0 +1,48 @@
+package training;
+
+import com.microsoft.playwright.*;
+import java.nio.file.Paths;
+
+public class TrialClass {
+    public static void main(String[] args) {
+        // Use try-with-resources to manage the Playwright engine lifecycle cleanly
+        try (Playwright playwright = Playwright.create()) {
+
+            // Launch the browser in headed mode
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+            System.out.println("Browser Launched");
+
+            Page page = browser.newPage();
+            page.navigate("https://saucedemo.com");
+            System.out.println("Page Opened");
+
+            // 1. Locate the text container containing the accepted usernames
+            // On SauceDemo, usernames are listed inside a div container with id="login_credentials"
+            Locator credentialsDiv = page.locator("#login_credentials");
+            credentialsDiv.waitFor();
+
+            // Extract the raw text inside the credentials container
+            String rawText = credentialsDiv.innerText();
+
+            // The text looks like: "Accepted usernames are here:\nstandard_user\nlocked_out_user..."
+            // Split the text by lines to extract individual usernames
+            String[] lines = rawText.split("\n");
+
+            // The first line is the header title. The second line (index 1) is the first active username
+            String copiedUsername = lines[1].trim();
+            System.out.println("Extracted & Copied Username: " + copiedUsername);
+
+            // 2. Paste the copied username straight into the input login text field
+            page.locator("[data-test='username']").fill(copiedUsername);
+            System.out.println("Username populated in input field.");
+
+            // 3. Take a screenshot of the login layout view
+            //page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("saucedemo_login.png")));
+            //System.out.println("Screenshot captured successfully as 'saucedemo_login.png'.");
+
+            // 4. Close out browser instances
+            browser.close();
+            
+        }
+    }
+}
