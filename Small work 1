@@ -1,0 +1,25 @@
+import com.microsoft.playwright.*;
+public class DemoScripts
+{
+    public static void main(String[] args) {
+        Playwright playwright = Playwright.create();
+        {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false).setSlowMo(100));
+            Page page = browser.newPage();
+            page.navigate("https://saucedemo.com");
+            Locator credentialsBox = page.locator("div#login_credentials");
+            String rawText = credentialsBox.innerText();
+            String[] lines = rawText.split("\n");
+            String targetUsername = "";
+            for (String line : lines) {
+                String cleanLine = line.trim();
+                if (!cleanLine.isEmpty() && !cleanLine.contains("Accepted usernames are")) {
+                    targetUsername = cleanLine;
+                    break;
+                }
+            }
+            System.out.println("Dynamically Scraped Username: " + targetUsername);
+            page.locator("input[data-test='username']").fill(targetUsername);
+            page.waitForTimeout(4000);
+        }
+    }}
