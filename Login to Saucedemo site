@@ -1,0 +1,49 @@
+import com.microsoft.playwright.*;
+public class DemoScripts
+{
+    public static void main(String[] args)
+    {
+        Playwright playwright = Playwright.create();
+        {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false).setSlowMo(100));
+            Page page = browser.newPage();
+            page.navigate("https://saucedemo.com");
+            Locator credentialsBox = page.locator("div#login_credentials");
+            String rawText = credentialsBox.innerText();
+            String[] lines = rawText.split("\n");
+            String targetUsername = "";
+            for (String line : lines)
+            {
+                String cleanLine = line.trim();
+                if (!cleanLine.isEmpty() && !cleanLine.contains("Accepted usernames are"))
+                {
+                    targetUsername = cleanLine;
+                    break;
+                }
+            }
+            System.out.println("Dynamically Scraped Username: " + targetUsername);
+            page.locator("input[data-test='username']").fill(targetUsername);
+            page.waitForTimeout(4000);
+            Locator credentialsBox1 = page.locator("div.login_password");
+            String rawText1 = credentialsBox1.innerText();
+            String[] lines1 = rawText1.split("\n");
+            String targetPassword = "";
+            for (String line1 : lines1)
+            {
+                String cleanLine1 = line1.trim();
+                if (cleanLine1.contains("secret_sauce"))
+                {
+                    targetPassword = cleanLine1;
+                    break;
+                }
+            }
+            System.out.println("Dynamically Scraped Password: " + targetPassword);
+            page.locator("input[data-test='password']").fill(targetPassword);
+            page.waitForTimeout(4000);
+
+            page.locator("input[data-test='login-button']").click();
+
+
+        }
+    }
+}
